@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration Validator</title>
+<style>
+  :root {
+    --bg1: #e3f2ff;        /* bright sky */
+    --bg2: #c9e7ff;        /* light azure */
+    --panel: #ffffff;
+    --line: #d4e8fb;
+    --ink: #1d2b3a;
+    --muted: #6f8398;
+    --accent: #1e90ff;     /* bright welcoming blue */
+    --accent-soft: #d6ecff;
+    --ok: #18b277;         /* fresh green for "valid" */
+    --warn: #f0506e;       /* clear pink-red */
+    --idle: #dbe7f2;
+    --field-bg: #f7fbff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 36px 30px;
+    box-shadow: 0 18px 50px -20px rgba(30, 144, 255, 0.35);
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 28px;
+  }
+
+  .field { margin-bottom: 22px; }
+
+  label {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--field-bg);
+    border: 1.5px solid var(--idle);
+    border-radius: 11px;
+    padding: 13px 15px;
+    color: var(--ink);
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+  }
+  input::placeholder { color: #c9b8a9; }
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  input.valid   { border-color: var(--ok); }
+  input.invalid { border-color: var(--warn); }
+
+  .feedback {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .feedback.ok   { color: var(--ok); }
+  .feedback.bad  { color: var(--warn); }
+  .feedback.idle { color: var(--muted); }
+
+  /* live requirement checklist for the password */
+  .checklist {
+    list-style: none;
+    margin-top: 11px;
+    display: grid;
+    gap: 6px;
+  }
+  .checklist li {
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s ease;
+  }
+  .checklist li .dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--idle);
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    color: transparent;
+    transition: all 0.15s ease;
+  }
+  .checklist li.met { color: var(--ok); }
+  .checklist li.met .dot {
+    border-color: var(--ok);
+    background: var(--ok);
+    color: #fff;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px;
+    border: none;
+    border-radius: 11px;
+    background: var(--idle);
+    color: #b6a597;
+    font-size: 0.98rem;
+    font-weight: 700;
+    cursor: not-allowed;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  button.ready {
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 10px 22px -8px rgba(30, 144, 255, 0.6);
+  }
+  button.ready:hover { filter: brightness(1.05); }
+  button.ready:active { transform: translateY(1px); }
+
+  .done {
+    text-align: center;
+    color: var(--ok);
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-top: 14px;
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Create your account</h1>
+    <p class="sub">We'll check each field as you type.</p>
+
+    <!-- USERNAME -->
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="off" placeholder="5–15 letters or digits">
+      <div class="feedback idle" id="username-fb">Alphanumeric, 5 to 15 characters.</div>
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="off" placeholder="Create a strong password">
+      <ul class="checklist" id="pw-checks">
+        <li data-rule="len"><span class="dot">✓</span>At least 8 characters</li>
+        <li data-rule="upper"><span class="dot">✓</span>One uppercase letter</li>
+        <li data-rule="digit"><span class="dot">✓</span>One digit</li>
+        <li data-rule="special"><span class="dot">✓</span>One special character</li>
+      </ul>
+    </div>
+
+    <!-- PHONE -->
+    <div class="field">
+      <label for="phone">Nigerian phone number</label>
+      <input id="phone" type="text" autocomplete="off" placeholder="+234XXXXXXXXXX">
+      <div class="feedback idle" id="phone-fb">Format: +234 followed by 10 digits.</div>
+    </div>
+
+    <button id="submit" disabled>Register</button>
+    <div class="done" id="done"></div>
+  </div>
+
+<script>
+  // ---- Regex patterns ----------------------------------------------------
+  const patterns = {
+    // letters + digits only, length 5 to 15
+    username: /^[a-zA-Z0-9]{5,15}$/,
+    // anchored full match: +234 then exactly 10 digits
+    phone: /^\+234\d{10}$/,
+  };
+
+  // Individual password rules — kept separate so the checklist can show
+  // exactly which ones pass. The combined check is just "all four true".
+  const pwRules = {
+    len:     v => v.length >= 8,
+    upper:   v => /[A-Z]/.test(v),
+    digit:   v => /\d/.test(v),
+    special: v => /[^A-Za-z0-9]/.test(v),
+  };
+
+  // ---- Element references ------------------------------------------------
+  const els = {
+    username: document.getElementById('username'),
+    password: document.getElementById('password'),
+    phone:    document.getElementById('phone'),
+    submit:   document.getElementById('submit'),
+    done:     document.getElementById('done'),
+  };
+  const usernameFb = document.getElementById('username-fb');
+  const phoneFb    = document.getElementById('phone-fb');
+  const pwChecks   = document.getElementById('pw-checks');
+
+  // Track validity of each field so the button only enables when all pass.
+  const state = { username: false, password: false, phone: false };
+
+  // Helper: set input border + feedback text/colour.
+  function setFeedback(input, fbEl, isEmpty, isValid, okMsg, badMsg) {
+    input.classList.remove('valid', 'invalid');
+    fbEl.classList.remove('ok', 'bad', 'idle');
+    if (isEmpty) {
+      fbEl.classList.add('idle');
+      fbEl.textContent = fbEl.dataset.hint;
+      return;
+    }
+    if (isValid) {
+      input.classList.add('valid');
+      fbEl.classList.add('ok');
+      fbEl.textContent = okMsg;
+    } else {
+      input.classList.add('invalid');
+      fbEl.classList.add('bad');
+      fbEl.textContent = badMsg;
+    }
+  }
+
+  // Stash the original idle hint so we can restore it when empty.
+  usernameFb.dataset.hint = usernameFb.textContent;
+  phoneFb.dataset.hint = phoneFb.textContent;
+
+  // ---- Validators (run on every keystroke) -------------------------------
+  function checkUsername() {
+    const v = els.username.value;
+    state.username = patterns.username.test(v);
+    setFeedback(
+      els.username, usernameFb,
+      v.length === 0, state.username,
+      'Username looks good.',
+      'Use 5–15 letters or digits only (no spaces or symbols).'
+    );
+    updateButton();
+  }
+
+  function checkPassword() {
+    const v = els.password.value;
+    let allMet = true;
+    // Light up each rule in the checklist.
+    pwChecks.querySelectorAll('li').forEach(li => {
+      const passed = pwRules[li.dataset.rule](v);
+      li.classList.toggle('met', passed);
+      if (!passed) allMet = false;
+    });
+    state.password = v.length > 0 && allMet;
+    els.password.classList.remove('valid', 'invalid');
+    if (v.length > 0) {
+      els.password.classList.add(state.password ? 'valid' : 'invalid');
+    }
+    updateButton();
+  }
+
+  function checkPhone() {
+    const v = els.phone.value;
+    state.phone = patterns.phone.test(v);
+    setFeedback(
+      els.phone, phoneFb,
+      v.length === 0, state.phone,
+      'Valid Nigerian number.',
+      'Must be +234 followed by exactly 10 digits.'
+    );
+    updateButton();
+  }
+
+  // ---- Submit button gate ------------------------------------------------
+  function updateButton() {
+    const ready = state.username && state.password && state.phone;
+    els.submit.disabled = !ready;
+    els.submit.classList.toggle('ready', ready);
+    if (!ready) els.done.textContent = '';
+  }
+
+  // ---- Wire up -----------------------------------------------------------
+  els.username.addEventListener('input', checkUsername);
+  els.password.addEventListener('input', checkPassword);
+  els.phone.addEventListener('input', checkPhone);
+
+  els.submit.addEventListener('click', () => {
+    if (els.submit.disabled) return;
+    els.done.textContent = 'All fields valid — ready to submit.';
+  });
+</script>
+</body>
+</html>

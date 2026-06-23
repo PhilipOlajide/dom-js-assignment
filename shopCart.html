@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenhouse — Plant Shop</title>
+<style>
+  :root {
+    --bg: #f3f0e7;
+    --panel: #ffffff;
+    --ink: #1f2b20;
+    --muted: #6b7d6a;
+    --leaf: #2f6b3f;
+    --leaf-dark: #234f2f;
+    --accent: #d4733a;
+    --line: #e2ded2;
+    --shadow: 0 1px 2px rgba(31,43,32,.06), 0 8px 24px rgba(31,43,32,.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 32px 20px 64px;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header.masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  .brand {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .brand span { color: var(--leaf); }
+  .tagline { color: var(--muted); font-size: 14px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  h2.section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  /* Product grid */
+  .products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 540px) {
+    .products { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+  }
+  .thumb {
+    height: 96px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+    margin-bottom: 14px;
+    background: #eef3ea;
+  }
+  .card h3 { font-size: 17px; font-weight: 600; }
+  .card .desc { color: var(--muted); font-size: 13px; margin: 4px 0 14px; }
+  .card .row {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .price { font-weight: 700; font-size: 17px; }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 9px;
+    transition: transform .05s ease, background .15s ease, opacity .15s ease;
+  }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--leaf); outline-offset: 2px; }
+
+  .add-btn {
+    background: var(--leaf);
+    color: #fff;
+    padding: 9px 16px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .add-btn:hover { background: var(--leaf-dark); }
+
+  /* Cart */
+  .cart {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 24px;
+    overflow: hidden;
+  }
+  .cart-head {
+    padding: 18px 20px;
+    background: var(--leaf-dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cart-head h2 { font-size: 16px; font-weight: 600; }
+  .count-pill {
+    background: rgba(255,255,255,.18);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .cart-body { padding: 8px 20px; max-height: 50vh; overflow-y: auto; }
+
+  .empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 32px 8px;
+    font-size: 14px;
+  }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-item:last-child { border-bottom: none; }
+  .ci-info { flex: 1; min-width: 0; }
+  .ci-name { font-size: 14px; font-weight: 600; }
+  .ci-meta { font-size: 12px; color: var(--muted); }
+  .qty {
+    background: #eef3ea;
+    color: var(--leaf-dark);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 1px 7px;
+  }
+  .ci-price { font-weight: 600; font-size: 14px; white-space: nowrap; }
+  .remove-btn {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--line);
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    font-size: 16px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+  }
+  .remove-btn:hover { background: #fbeee6; border-color: var(--accent); }
+
+  .cart-foot {
+    padding: 18px 20px;
+    border-top: 1px solid var(--line);
+  }
+  .total-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .total-label { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .total-value { font-size: 26px; font-weight: 700; }
+  .checkout {
+    width: 100%;
+    margin-top: 14px;
+    background: var(--accent);
+    color: #fff;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .checkout:hover { background: #c0632e; }
+  .checkout:disabled { opacity: .45; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="brand">Green<span>house</span></div>
+      <div class="tagline">Easy-care plants, delivered across Lagos</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main>
+      <h2 class="section-title">Shop</h2>
+      <div class="products" id="products"></div>
+    </main>
+
+    <aside class="cart" aria-label="Shopping cart">
+      <div class="cart-head">
+        <h2>Your Cart</h2>
+        <span class="count-pill" id="count">0 items</span>
+      </div>
+      <div class="cart-body" id="cart-body">
+        <p class="empty" id="empty">Your cart is empty. Add a plant to get started.</p>
+      </div>
+      <div class="cart-foot">
+        <div class="total-row">
+          <span class="total-label">Total</span>
+          <span class="total-value" id="total">₦0</span>
+        </div>
+        <button class="checkout" id="checkout" disabled>Checkout</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  // ---- Product data ----
+  const products = [
+    { id: 1, name: "Snake Plant",     desc: "Thrives on neglect",          price: 8500,  emoji: "🪴" },
+    { id: 2, name: "Pothos",          desc: "Trailing & forgiving",        price: 6000,  emoji: "🌿" },
+    { id: 3, name: "Peace Lily",      desc: "Blooms in low light",         price: 11000, emoji: "🌼" },
+    { id: 4, name: "Monstera",        desc: "The statement piece",         price: 18500, emoji: "🍃" },
+    { id: 5, name: "Aloe Vera",       desc: "Useful and tough",            price: 5500,  emoji: "🌵" },
+    { id: 6, name: "ZZ Plant",        desc: "Glossy, near-indestructible", price: 13000, emoji: "🌱" },
+  ];
+
+  // Cart state: { productId: quantity }
+  const cart = {};
+
+  const naira = n => "₦" + n.toLocaleString("en-NG");
+
+  // ---- Render the product grid once ----
+  const productsEl = document.getElementById("products");
+  products.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="thumb">${p.emoji}</div>
+      <h3>${p.name}</h3>
+      <p class="desc">${p.desc}</p>
+      <div class="row">
+        <span class="price">${naira(p.price)}</span>
+        <button class="add-btn" data-id="${p.id}">Add to Cart</button>
+      </div>`;
+    productsEl.appendChild(card);
+  });
+
+  // ---- Cart operations ----
+  function addToCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+  }
+
+  function removeFromCart(id) {
+    if (!cart[id]) return;
+    cart[id] -= 1;                 // remove one unit
+    if (cart[id] <= 0) delete cart[id];
+    renderCart();
+  }
+
+  // ---- Render cart + running total ----
+  function renderCart() {
+    const body = document.getElementById("cart-body");
+    const ids = Object.keys(cart);
+
+    let total = 0;
+    let itemCount = 0;
+
+    if (ids.length === 0) {
+      body.innerHTML = '<p class="empty">Your cart is empty. Add a plant to get started.</p>';
+    } else {
+      body.innerHTML = "";
+      ids.forEach(id => {
+        const p = products.find(x => x.id === Number(id));
+        const qty = cart[id];
+        const lineTotal = p.price * qty;
+        total += lineTotal;
+        itemCount += qty;
+
+        const item = document.createElement("div");
+        item.className = "cart-item";
+        item.innerHTML = `
+          <div class="ci-info">
+            <div class="ci-name">${p.name} ${qty > 1 ? `<span class="qty">×${qty}</span>` : ""}</div>
+            <div class="ci-meta">${naira(p.price)} each</div>
+          </div>
+          <span class="ci-price">${naira(lineTotal)}</span>
+          <button class="remove-btn" data-remove="${p.id}" aria-label="Remove one ${p.name}">−</button>`;
+        body.appendChild(item);
+      });
+    }
+
+    document.getElementById("total").textContent = naira(total);
+    document.getElementById("count").textContent =
+      itemCount + (itemCount === 1 ? " item" : " items");
+    document.getElementById("checkout").disabled = itemCount === 0;
+  }
+
+  // ---- Event delegation for all buttons ----
+  document.addEventListener("click", e => {
+    const addId = e.target.dataset.id;
+    const removeId = e.target.dataset.remove;
+    if (addId) addToCart(Number(addId));
+    if (removeId) removeFromCart(Number(removeId));
+  });
+
+  document.getElementById("checkout").addEventListener("click", () => {
+    alert("Order placed! Total: " + document.getElementById("total").textContent);
+  });
+</script>
+</body>
+</html>

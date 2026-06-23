@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Catalogue — Library Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2733;
+    --ink-soft:#46566a;
+    --manila:#f3e7cb;
+    --manila-edge:#e4d3ac;
+    --rule:#9fb4c9;
+    --margin-red:#c2443a;
+    --stamp:#b2362d;
+    --felt:#26352e;
+    --felt-2:#1d2a24;
+    --gold:#d8a13a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Spectral",Georgia,serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, #314338 0%, var(--felt) 55%, var(--felt-2) 100%);
+    min-height:100vh;
+    padding:48px 20px 80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+
+  header.mast{
+    text-align:center;
+    color:#f3ead6;
+    margin-bottom:8px;
+  }
+  .mast .eyebrow{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:14px;
+  }
+  .mast h1{
+    font-size:clamp(38px,7vw,68px);
+    font-weight:600;line-height:.95;letter-spacing:-.5px;
+  }
+  .mast h1 em{font-style:italic;color:var(--gold)}
+  .mast p{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;color:#b8c4ba;margin-top:16px;letter-spacing:.05em;
+  }
+
+  /* control bar */
+  .bar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
+    margin:34px 0 8px;
+  }
+  .seg{
+    display:inline-flex;background:rgba(0,0,0,.22);border:1px solid rgba(216,161,58,.3);
+    border-radius:2px;overflow:hidden;
+  }
+  .seg button{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:#cdd6cb;background:transparent;border:none;
+    padding:10px 16px;cursor:pointer;transition:.15s;
+  }
+  .seg button[aria-pressed="true"]{background:var(--gold);color:#1d2a24;font-weight:700}
+  .seg button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+  .count{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+    color:#9fb4a4;padding:6px 4px;
+  }
+  .addbtn{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:#1d2a24;background:#f3ead6;border:1px solid #f3ead6;
+    padding:10px 16px;border-radius:2px;cursor:pointer;font-weight:700;transition:.15s;
+  }
+  .addbtn:hover{background:#fff}
+  .addbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* the drawer of cards */
+  .drawer{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+    gap:22px;margin-top:30px;
+  }
+
+  .card{
+    position:relative;background:var(--manila);
+    border:1px solid var(--manila-edge);
+    border-radius:3px;padding:22px 22px 20px 42px;
+    box-shadow:0 14px 28px -18px rgba(0,0,0,.7), inset 0 1px 0 #fbf3df;
+    /* ruled lines */
+    background-image:repeating-linear-gradient(
+      to bottom, transparent 0 30px, var(--rule) 30px 31px);
+    background-position:0 64px;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 22px 34px -18px rgba(0,0,0,.75), inset 0 1px 0 #fbf3df}
+  /* red margin line */
+  .card::before{
+    content:"";position:absolute;left:30px;top:0;bottom:0;width:1px;background:var(--margin-red);opacity:.55;
+  }
+  .card .tag{
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
+    color:var(--ink-soft);text-transform:uppercase;display:block;margin-bottom:10px;
+  }
+  .card h3{
+    font-size:24px;font-weight:600;line-height:1.12;margin-bottom:8px;
+  }
+  .card .by{font-style:italic;color:var(--ink-soft);font-size:16px;line-height:31px}
+  .card .meta{
+    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);
+    margin-top:14px;display:flex;justify-content:space-between;align-items:flex-end;
+    line-height:31px;
+  }
+  .card .meta .yr b{color:var(--ink);font-weight:700}
+  .act{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;border:1px solid var(--ink);background:transparent;color:var(--ink);
+    padding:8px 14px;border-radius:2px;cursor:pointer;transition:.15s;
+  }
+  .act:hover{background:var(--ink);color:var(--manila)}
+  .act:focus-visible{outline:2px solid var(--margin-red);outline-offset:2px}
+
+  /* borrowed state */
+  .card.out{filter:saturate(.7)}
+  .card.out h3,.card.out .by{opacity:.5}
+  .stamp{
+    position:absolute;top:34%;right:14px;transform:rotate(-11deg);
+    border:3px solid var(--stamp);color:var(--stamp);
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;
+    letter-spacing:.16em;padding:5px 10px;border-radius:4px;
+    text-transform:uppercase;opacity:.82;pointer-events:none;
+    box-shadow:0 0 0 1px rgba(178,54,45,.2) inset;
+  }
+  .act.ret{border-color:var(--stamp);color:var(--stamp)}
+  .act.ret:hover{background:var(--stamp);color:var(--manila)}
+
+  .empty{
+    grid-column:1/-1;text-align:center;color:#a9b8ad;
+    font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;
+    padding:60px 0;border:1px dashed rgba(255,255,255,.18);border-radius:4px;
+  }
+
+  /* add form (acts like a blank card) */
+  dialog{
+    border:none;border-radius:4px;padding:0;background:var(--manila);
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.8);max-width:380px;width:92%;
+  }
+  dialog::backdrop{background:rgba(13,20,16,.62)}
+  .form{padding:26px 26px 24px}
+  .form h2{font-size:22px;font-weight:600;margin-bottom:4px}
+  .form .sub{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:20px}
+  .field{margin-bottom:14px}
+  .field label{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:5px}
+  .field input{
+    width:100%;font-family:"Spectral",serif;font-size:16px;color:var(--ink);
+    background:#fbf4e2;border:1px solid var(--manila-edge);border-bottom:2px solid var(--rule);
+    border-radius:2px;padding:9px 11px;
+  }
+  .field input:focus{outline:none;border-bottom-color:var(--margin-red)}
+  .form .row{display:flex;gap:10px;margin-top:20px}
+  .form .row button{flex:1;font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;padding:11px;border-radius:2px;cursor:pointer}
+  .btn-file{background:var(--ink);color:var(--manila);border:1px solid var(--ink);font-weight:700}
+  .btn-cancel{background:transparent;color:var(--ink-soft);border:1px solid var(--manila-edge)}
+  .btn-file:focus-visible,.btn-cancel:focus-visible{outline:2px solid var(--margin-red);outline-offset:2px}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:520px){.card{padding-left:38px}.card::before{left:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">Card Catalogue · Stack A</div>
+    <h1>The <em>Catalogue</em></h1>
+    <p>A small shelf of African letters — borrow, return, and keep the record.</p>
+  </header>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Filter shelf">
+      <button id="f-avail" aria-pressed="true">On the shelf</button>
+      <button id="f-all" aria-pressed="false">Whole catalogue</button>
+    </div>
+    <span class="count" id="count"></span>
+    <button class="addbtn" id="openAdd">+ File a new book</button>
+  </div>
+
+  <div class="drawer" id="drawer"></div>
+</div>
+
+<dialog id="addDlg">
+  <div class="form">
+    <h2>File a new book</h2>
+    <div class="sub">A fresh index card</div>
+    <div class="field"><label for="i-title">Title</label><input id="i-title" autocomplete="off"></div>
+    <div class="field"><label for="i-author">Author</label><input id="i-author" autocomplete="off"></div>
+    <div class="field"><label for="i-year">Year</label><input id="i-year" inputmode="numeric" autocomplete="off"></div>
+    <div class="row">
+      <button class="btn-cancel" id="cancelAdd" type="button">Cancel</button>
+      <button class="btn-file" id="confirmAdd" type="button">Add to shelf</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ────────────────────────────────────────────────
+   MODEL — pure classes, no DOM inside them
+   ──────────────────────────────────────────────── */
+class Book {
+  constructor(title, author, year, available = true) {
+    this.title = title;
+    this.author = author;
+    this.year = year;
+    this.available = available;
+  }
+}
+
+class Library {
+  constructor() {
+    this.books = [];
+  }
+
+  // add a book to the collection
+  addBook(book) {
+    this.books.push(book);
+    return book;
+  }
+
+  // borrow by title — marks it unavailable; returns true if it worked
+  borrowBook(title) {
+    const book = this.books.find(b => b.title === title);
+    if (!book || !book.available) return false;
+    book.available = false;
+    return true;
+  }
+
+  // return by title — marks it available again
+  returnBook(title) {
+    const book = this.books.find(b => b.title === title);
+    if (!book || book.available) return false;
+    book.available = true;
+    return true;
+  }
+
+  // list all books currently available to borrow
+  listAvailable() {
+    return this.books.filter(b => b.available);
+  }
+}
+
+/* ────────────────────────────────────────────────
+   SEED DATA
+   ──────────────────────────────────────────────── */
+const library = new Library();
+[
+  ["Things Fall Apart",   "Chinua Achebe", 1958],
+  ["No Longer at Ease",   "Chinua Achebe", 1960],
+  ["A Man of the People", "Chinua Achebe", 1966],
+  ["Season of Anomy",     "Wole Soyinka",  1973],
+  ["The Interpreters",    "Wole Soyinka",  1965],
+].forEach(([t, a, y]) => library.addBook(new Book(t, a, y)));
+
+/* ────────────────────────────────────────────────
+   VIEW — renders from the model
+   ──────────────────────────────────────────────── */
+const drawer  = document.getElementById("drawer");
+const countEl = document.getElementById("count");
+const fAvail  = document.getElementById("f-avail");
+const fAll    = document.getElementById("f-all");
+let showAvailableOnly = true;
+
+function callNo(i){ return "PR " + String(8000 + i).slice(0,2) + "." + String(8000 + i).slice(2); }
+
+function render() {
+  const list = showAvailableOnly ? library.listAvailable() : library.books;
+  drawer.innerHTML = "";
+
+  const avail = library.listAvailable().length;
+  countEl.textContent = avail + " of " + library.books.length + " on the shelf";
+
+  if (list.length === 0) {
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = showAvailableOnly
+      ? "Every title is out on loan. Check back, or browse the whole catalogue."
+      : "The catalogue is empty. File a book to begin.";
+    drawer.appendChild(e);
+    return;
+  }
+
+  list.forEach(book => {
+    const idx = library.books.indexOf(book);
+    const card = document.createElement("article");
+    card.className = "card" + (book.available ? "" : " out");
+
+    card.innerHTML = `
+      <span class="tag">${callNo(idx)} · ${book.author.split(" ").pop()}</span>
+      <h3>${escapeHtml(book.title)}</h3>
+      <div class="by">${escapeHtml(book.author)}</div>
+      <div class="meta">
+        <span class="yr">Published <b>${book.year}</b></span>
+      </div>
+      ${book.available ? "" : '<div class="stamp">Borrowed</div>'}
+    `;
+
+    const meta = card.querySelector(".meta");
+    const btn = document.createElement("button");
+    if (book.available) {
+      btn.className = "act";
+      btn.textContent = "Borrow";
+      btn.onclick = () => { library.borrowBook(book.title); render(); };
+    } else {
+      btn.className = "act ret";
+      btn.textContent = "Return";
+      btn.onclick = () => { library.returnBook(book.title); render(); };
+    }
+    meta.appendChild(btn);
+    drawer.appendChild(card);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+  ));
+}
+
+/* filter toggle */
+function setFilter(availOnly){
+  showAvailableOnly = availOnly;
+  fAvail.setAttribute("aria-pressed", String(availOnly));
+  fAll.setAttribute("aria-pressed", String(!availOnly));
+  render();
+}
+fAvail.onclick = () => setFilter(true);
+fAll.onclick   = () => setFilter(false);
+
+/* add-book dialog */
+const dlg = document.getElementById("addDlg");
+const iTitle = document.getElementById("i-title");
+const iAuthor = document.getElementById("i-author");
+const iYear = document.getElementById("i-year");
+
+document.getElementById("openAdd").onclick = () => {
+  iTitle.value = iAuthor.value = iYear.value = "";
+  dlg.showModal();
+  iTitle.focus();
+};
+document.getElementById("cancelAdd").onclick = () => dlg.close();
+document.getElementById("confirmAdd").onclick = () => {
+  const title = iTitle.value.trim();
+  const author = iAuthor.value.trim() || "Unknown";
+  const year = parseInt(iYear.value, 10) || "—";
+  if (!title) { iTitle.focus(); return; }
+  library.addBook(new Book(title, author, year));
+  dlg.close();
+  if (showAvailableOnly === false) render(); else setFilter(true);
+};
+
+render();
+</script>
+</body>
+</html>

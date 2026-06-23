@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Results</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; }
+  table { border-collapse: collapse; width: 100%; max-width: 560px; margin-top: 1rem; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background: #2c3e50; color: #fff; }
+  tr:nth-child(even) { background: #f7f7f7; }
+  td.num { text-align: right; }
+  .pass { color: #1b7a2f; font-weight: 600; }
+  .fail { color: #b91c1c; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Student Results (Pass mark: 50)</h1>
+<table id="results">
+  <thead>
+    <tr><th>Name</th><th>Class</th><th>Average</th><th>Status</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const PASS_MARK = 50;
+const SUBJECTS = ["CSC101", "CSC102", "CSC103"];
+
+let schoolData = '{"classA":[ {"name":"Amara", "CSC101":72, "CSC102":55, "CSC103":68}, {"name":"Chidi", "CSC101":40, "CSC102":48, "CSC103":35}, {"name":"Ngozi", "CSC101":85, "CSC102":90, "CSC103":78}, {"name":"Emeka", "CSC101":60, "CSC102":52, "CSC103":44}], "classB":[ {"name":"Fatima", "CSC101":91, "CSC102":88, "CSC103":95}, {"name":"Tunde", "CSC101":30, "CSC102":45, "CSC103":50}, {"name":"Blessing","CSC101":77, "CSC102":63, "CSC103":70}, {"name":"Seun", "CSC101":55, "CSC102":49, "CSC103":58}]}';
+
+const data = JSON.parse(schoolData);
+const tbody = document.querySelector("#results tbody");
+
+// Iterate over every class, then every student in that class
+for (const className in data) {
+  for (const student of data[className]) {
+    const total = SUBJECTS.reduce((sum, subj) => sum + student[subj], 0);
+    const average = total / SUBJECTS.length;
+    const passed = average >= PASS_MARK;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${student.name}</td>
+      <td>${className}</td>
+      <td class="num">${average.toFixed(2)}</td>
+      <td class="${passed ? "pass" : "fail"}">${passed ? "Pass" : "Fail"}</td>
+    `;
+    tbody.appendChild(row);
+  }
+}
+</script>
+</body>
+</html>

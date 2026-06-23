@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNILAG Quiz — In Deed and In Truth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lagoon-deep:#06243a;
+    --lagoon:#0a3a5c;
+    --unilag-blue:#0b5394;
+    --gold:#e8b33d;
+    --paper:#f3efe6;
+    --paper-dim:#cdd6dd;
+    --correct:#1f7a4d;
+    --correct-deep:#0e5733;
+    --wrong:#9e2b2b;
+    --wrong-deep:#6e1717;
+    --display:"Fraunces", Georgia, "Times New Roman", serif;
+    --body:"Inter", -apple-system, system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html,body{height:100%;}
+
+  body{
+    font-family:var(--body);
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--lagoon) 0%, var(--lagoon-deep) 60%, #04192a 100%);
+    color:var(--paper);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    transition:background-color .55s ease, background .55s ease;
+    overflow-x:hidden;
+  }
+
+  /* full-screen verdict states */
+  body.flash-correct{
+    background:linear-gradient(160deg, var(--correct) 0%, var(--correct-deep) 100%);
+  }
+  body.flash-wrong{
+    background:linear-gradient(160deg, var(--wrong) 0%, var(--wrong-deep) 100%);
+  }
+
+  .card{
+    width:100%;
+    max-width:600px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:20px;
+    padding:38px 34px 34px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7);
+    position:relative;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .card.swap{opacity:0; transform:translateY(10px);}
+
+  /* crest */
+  .crest{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:26px;
+  }
+  .crest .mark{
+    width:42px;height:42px;border-radius:50%;
+    border:2px solid var(--gold);
+    display:grid;place-items:center;
+    flex:0 0 auto;
+    background:rgba(232,179,61,.08);
+  }
+  .crest .mark svg{width:22px;height:22px;}
+  .crest .org{
+    font-family:var(--display);
+    font-weight:700;
+    letter-spacing:.02em;
+    font-size:1.02rem;
+    line-height:1.1;
+  }
+  .crest .org small{
+    display:block;
+    font-family:var(--body);
+    font-weight:500;
+    font-size:.64rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-top:3px;
+  }
+
+  /* progress */
+  .progress-wrap{margin-bottom:24px;}
+  .progress-meta{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--paper-dim);
+    margin-bottom:10px;
+  }
+  .progress-meta .score{color:var(--gold);}
+  .lagoon-bar{
+    height:6px;border-radius:6px;
+    background:rgba(255,255,255,.10);
+    overflow:hidden;
+  }
+  .lagoon-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg, var(--unilag-blue), var(--gold));
+    border-radius:6px;
+    transition:width .45s cubic-bezier(.4,0,.2,1);
+  }
+
+  .question{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:1.5rem;
+    line-height:1.28;
+    margin-bottom:24px;
+    letter-spacing:-.01em;
+  }
+
+  .options{display:flex;flex-direction:column;gap:11px;}
+  .option{
+    text-align:left;
+    font-family:var(--body);
+    font-size:1rem;
+    color:var(--paper);
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    padding:15px 17px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:13px;
+    transition:background .18s ease, border-color .18s ease, transform .12s ease;
+  }
+  .option:hover:not(:disabled){
+    background:rgba(232,179,61,.10);
+    border-color:rgba(232,179,61,.45);
+  }
+  .option:active:not(:disabled){transform:scale(.99);}
+  .option:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  .option .key{
+    flex:0 0 auto;
+    width:26px;height:26px;border-radius:7px;
+    display:grid;place-items:center;
+    font-size:.78rem;font-weight:600;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .option:disabled{cursor:default;}
+  .option.is-correct{
+    background:rgba(31,122,77,.30);
+    border-color:#3fb37a;
+  }
+  .option.is-correct .key{background:#2e9a63;border-color:#3fb37a;}
+  .option.is-wrong{
+    background:rgba(158,43,43,.30);
+    border-color:#d76a6a;
+  }
+  .option.is-wrong .key{background:#bb4040;border-color:#d76a6a;}
+
+  .verdict{
+    margin-top:20px;min-height:22px;
+    font-size:.92rem;font-weight:500;
+    text-align:center;
+    opacity:0;transition:opacity .25s ease;
+  }
+  .verdict.show{opacity:1;}
+
+  /* result screen */
+  .result{text-align:center;}
+  .result .eyebrow{
+    font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:14px;
+  }
+  .result .score-big{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:4.4rem;
+    line-height:1;
+    letter-spacing:-.02em;
+  }
+  .result .score-big span{font-size:2rem;color:var(--paper-dim);}
+  .result .grade{
+    font-family:var(--display);
+    font-size:1.7rem;font-weight:600;
+    margin:18px 0 8px;
+  }
+  .result .remark{
+    color:var(--paper-dim);
+    font-size:1rem;line-height:1.5;
+    max-width:380px;margin:0 auto 28px;
+  }
+  .restart{
+    font-family:var(--body);font-weight:600;font-size:.95rem;
+    color:var(--lagoon-deep);
+    background:var(--gold);
+    border:none;border-radius:11px;
+    padding:14px 30px;cursor:pointer;
+    transition:transform .12s ease, box-shadow .2s ease;
+  }
+  .restart:hover{transform:translateY(-1px);box-shadow:0 10px 24px -10px rgba(232,179,61,.7);}
+  .restart:focus-visible{outline:2px solid var(--paper);outline-offset:3px;}
+
+  @media (max-width:480px){
+    .card{padding:30px 22px 26px;}
+    .question{font-size:1.28rem;}
+    .result .score-big{font-size:3.6rem;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+  <main class="card" id="card" aria-live="polite">
+    <div class="crest">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8b33d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 16c2-1.4 3.5-1.4 5.5 0s3.5 1.4 5.5 0 3.5-1.4 5.5 0"/>
+          <path d="M3 20c2-1.4 3.5-1.4 5.5 0s3.5 1.4 5.5 0 3.5-1.4 5.5 0"/>
+          <path d="M12 3l8 3.5-8 3.5-8-3.5L12 3z"/>
+          <path d="M7 8.3v3.2c0 1 2.2 2 5 2s5-1 5-2V8.3"/>
+        </svg>
+      </span>
+      <span class="org">University of Lagos<small>In Deed and In Truth</small></span>
+    </div>
+
+    <!-- Quiz view -->
+    <section id="quiz">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="counter">Question 1 of 6</span>
+          <span class="score" id="liveScore">Score 0</span>
+        </div>
+        <div class="lagoon-bar"><div class="lagoon-fill" id="fill"></div></div>
+      </div>
+
+      <h1 class="question" id="questionText"></h1>
+      <div class="options" id="options" role="group" aria-label="Answer options"></div>
+      <p class="verdict" id="verdict"></p>
+    </section>
+
+    <!-- Result view (hidden until end) -->
+    <section class="result" id="result" hidden>
+      <p class="eyebrow">Final Result</p>
+      <div class="score-big"><span id="finalScore">0</span><span>/6</span></div>
+      <p class="grade" id="gradeText"></p>
+      <p class="remark" id="remarkText"></p>
+      <button class="restart" id="restartBtn">Retake the quiz</button>
+    </section>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  const QUESTIONS = [
+    {
+      q: "In what year was the University of Lagos established?",
+      options: ["1948", "1962", "1975", "1988"],
+      answer: 1
+    },
+    {
+      q: "What is the official motto of the University of Lagos?",
+      options: ["Knowledge and Service", "In Deed and In Truth", "Light and Truth", "Pride of the Nation"],
+      answer: 1
+    },
+    {
+      q: "In which part of Lagos is the main (Akoka) campus located?",
+      options: ["Yaba", "Ikeja", "Lekki", "Apapa"],
+      answer: 0
+    },
+    {
+      q: "The main campus shares its waterfront with which body of water?",
+      options: ["Atlantic Ocean", "River Niger", "Lagos Lagoon", "Lake Chad"],
+      answer: 2
+    },
+    {
+      q: "By which popular slogan is UNILAG widely known?",
+      options: [
+        "The Citadel of Excellence",
+        "University of First Choice and the Nation's Pride",
+        "Great Ife of the West",
+        "The Premier University"
+      ],
+      answer: 1
+    },
+    {
+      q: "In which area is the College of Medicine of the University of Lagos (CMUL) located?",
+      options: ["Akoka", "Idi-Araba", "Victoria Island", "Epe"],
+      answer: 1
+    }
+  ];
+
+  const KEYS = ["A","B","C","D"];
+  let current = 0;
+  let score = 0;
+  let locked = false;
+
+  const card        = document.getElementById("card");
+  const quizView    = document.getElementById("quiz");
+  const resultView  = document.getElementById("result");
+  const counterEl   = document.getElementById("counter");
+  const liveScoreEl = document.getElementById("liveScore");
+  const fillEl      = document.getElementById("fill");
+  const questionEl  = document.getElementById("questionText");
+  const optionsEl   = document.getElementById("options");
+  const verdictEl   = document.getElementById("verdict");
+
+  function renderQuestion(){
+    locked = false;
+    const item = QUESTIONS[current];
+
+    counterEl.textContent = "Question " + (current + 1) + " of " + QUESTIONS.length;
+    liveScoreEl.textContent = "Score " + score;
+    fillEl.style.width = ((current) / QUESTIONS.length * 100) + "%";
+
+    questionEl.textContent = item.q;
+    verdictEl.textContent = "";
+    verdictEl.classList.remove("show");
+
+    optionsEl.innerHTML = "";
+    item.options.forEach(function(text, idx){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "option";
+      btn.innerHTML = '<span class="key">' + KEYS[idx] + '</span><span>' + text + '</span>';
+      btn.addEventListener("click", function(){ selectAnswer(idx, btn); });
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(idx, btn){
+    if (locked) return;
+    locked = true;
+
+    const item = QUESTIONS[current];
+    const correct = idx === item.answer;
+    const buttons = optionsEl.querySelectorAll(".option");
+
+    buttons.forEach(function(b, i){
+      b.disabled = true;
+      if (i === item.answer) b.classList.add("is-correct");
+    });
+
+    if (correct){
+      score++;
+      liveScoreEl.textContent = "Score " + score;
+      document.body.classList.add("flash-correct");
+      verdictEl.textContent = "Correct \u2014 well done.";
+    } else {
+      btn.classList.add("is-wrong");
+      document.body.classList.add("flash-wrong");
+      verdictEl.textContent = "Not quite. The correct answer is highlighted.";
+    }
+    verdictEl.classList.add("show");
+
+    fillEl.style.width = ((current + 1) / QUESTIONS.length * 100) + "%";
+
+    window.setTimeout(advance, 1150);
+  }
+
+  function advance(){
+    document.body.classList.remove("flash-correct", "flash-wrong");
+    current++;
+
+    card.classList.add("swap");
+    window.setTimeout(function(){
+      if (current < QUESTIONS.length){
+        renderQuestion();
+      } else {
+        showResult();
+      }
+      card.classList.remove("swap");
+    }, 280);
+  }
+
+  function gradeFor(pct){
+    if (pct === 100) return { g: "A \u2014 Distinction", r: "Flawless. You know the lagoon campus inside out." };
+    if (pct >= 80)  return { g: "B \u2014 Very Good",    r: "Strong showing \u2014 just a question or two shy of a clean sweep." };
+    if (pct >= 60)  return { g: "C \u2014 Good",         r: "A solid pass. A quick revisit and you'll be at the top." };
+    if (pct >= 40)  return { g: "D \u2014 Fair",         r: "You're getting there. Worth another run through the questions." };
+    return                 { g: "F \u2014 Try Again",    r: "Tough round. Take another shot \u2014 the facts stick fast." };
+  }
+
+  function showResult(){
+    quizView.hidden = true;
+    resultView.hidden = false;
+
+    const pct = Math.round(score / QUESTIONS.length * 100);
+    const grade = gradeFor(pct);
+
+    document.getElementById("finalScore").textContent = score;
+    document.getElementById("gradeText").textContent = grade.g;
+    document.getElementById("remarkText").textContent = grade.r;
+  }
+
+  document.getElementById("restartBtn").addEventListener("click", function(){
+    current = 0;
+    score = 0;
+    resultView.hidden = true;
+    quizView.hidden = false;
+    renderQuestion();
+  });
+
+  renderQuestion();
+})();
+</script>
+</body>
+</html>

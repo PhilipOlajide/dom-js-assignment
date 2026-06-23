@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Management System</title>
+</head>
+<body>
+    <h2>Library Management System</h2>
+
+    <h3>Add Book</h3>
+    <input type="text" id="title" placeholder="Title">
+    <input type="text" id="author" placeholder="Author">
+    <input type="number" id="year" placeholder="Year">
+    <button onclick="addBook()">Add Book</button>
+
+    <h3>Borrow Book</h3>
+    <input type="text" id="borrowTitle" placeholder="Book Title">
+    <button onclick="borrowBook()">Borrow</button>
+
+    <h3>Return Book</h3>
+    <input type="text" id="returnTitle" placeholder="Book Title">
+    <button onclick="returnBook()">Return</button>
+
+    <h3>Available Books</h3>
+    <button onclick="showAvailableBooks()">List Available Books</button>
+
+    <div id="output"></div>
+
+    
+    <script>
+        
+        // Book Class
+        class Book {
+            constructor(title, author, year) {
+                this.title = title;
+                this.author = author;
+                this.year = year;
+                this.available = true;
+            }
+        }
+
+        // Library Class
+        class Library {
+            constructor() {
+                this.books = [];
+            }
+
+            addBook(book) {
+                this.books.push(book);
+            }
+
+            borrowBook(title) {
+                const book = this.books.find(
+                    b => b.title.toLowerCase() === title.toLowerCase()
+                );
+
+                if (book && book.available) {
+                    book.available = false;
+                    return `"${book.title}" has been borrowed.`;
+                }
+
+                return "Book not available.";
+            }
+
+            returnBook(title) {
+                const book = this.books.find(
+                    b => b.title.toLowerCase() === title.toLowerCase()
+                );
+
+                if (book && !book.available) {
+                    book.available = true;
+                    return `"${book.title}" has been returned.`;
+                }
+
+                return "Book not found or already available.";
+            }
+
+            listAvailableBooks() {
+                return this.books.filter(book => book.available);
+            }
+        }
+        
+        
+        // Create Library Object
+        const library = new Library();
+
+        // Functions for UI
+        function addBook() {
+            const title = document.getElementById("title").value;
+            const author = document.getElementById("author").value;
+            const year = document.getElementById("year").value;
+
+            if (title && author && year) {
+                const book = new Book(title, author, year);
+                library.addBook(book);
+
+                document.getElementById("output").innerHTML =
+                    `"${title}" added successfully.`;
+
+                document.getElementById("title").value = "";
+                document.getElementById("author").value = "";
+                document.getElementById("year").value = "";
+            }
+        }
+
+        function borrowBook() {
+            const title = document.getElementById("borrowTitle").value;
+            document.getElementById("output").innerHTML =
+                library.borrowBook(title);
+        }
+
+        function returnBook() {
+            const title = document.getElementById("returnTitle").value;
+            document.getElementById("output").innerHTML =
+                library.returnBook(title);
+        }
+
+        function showAvailableBooks() {
+            const books = library.listAvailableBooks();
+
+            if (books.length === 0) {
+                document.getElementById("output").innerHTML =
+                    "No books available.";
+                return;
+            }
+
+            let result = "<ul>";
+
+            books.forEach(book => {
+                result += `
+                    <li>
+                        ${book.title} by ${book.author} (${book.year})
+                    </li>
+                `;
+            });
+
+            result += "</ul>";
+
+            document.getElementById("output").innerHTML = result;
+        }
+    </script>
+</body>
+</html>
